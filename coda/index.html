@@ -9,11 +9,11 @@
 <body>
     <header>
         <div>
-            <h1>Reading Tracker</h1>
+            <h1>Biblioteca</h1>
             <p>Gerenciador de Leituras, Livros e Autores</p>
         </div>
         <nav>
-            <button id="tab-readings" class="active">Leituras & Wishlist</button>
+            <button id="tab-readings" class="active">Leituras</button>
             <button id="tab-books">Livros</button>
             <button id="tab-authors">Autores</button>
             <button id="btn-reset" class="btn-secondary" title="Restaurar dados originais">Resetar Dados</button>
@@ -27,7 +27,7 @@
         <section id="view-readings">
             <div class="panel">
                 <div class="panel-header">
-                    <h2 id="form-reading-title">Registrar Nova Leitura / Wishlist</h2>
+                    <h2 id="form-reading-title">Registrar Nova Leitura</h2>
                 </div>
                 <div id="error-reading" class="alert-error hidden"></div>
                 <form id="form-reading">
@@ -38,13 +38,13 @@
                             <select id="reading-book" required></select>
                         </div>
                         <div class="form-group">
-                            <label for="reading-status">Status *</label>
-                            <select id="reading-status" required>
-                                <option value="Want to read">Quero Ler (Want to read)</option>
-                                <option value="Read">Lido (Read)</option>
-                                <option value="Paused">Pausado (Paused)</option>
-                            </select>
-                        </div>
+                             <label for="reading-status">Status *</label>
+                             <select id="reading-status" required>
+                                    <option value="Want to read">Quero Ler</option>
+                                    <option value="Read">Lido</option>
+                                    <option value="Paused">Pausado</option>
+                              </select>
+                            </div>
                         <div class="form-group">
                             <label for="reading-year">Ano da Leitura</label>
                             <input type="number" id="reading-year" min="1900" max="2030" placeholder="Ex: 2026">
@@ -68,10 +68,10 @@
                     <h2>Histórico e Lista de Leitura</h2>
                     <div class="filters">
                         <select id="filter-status">
-                            <option value="ALL">Todos os Status</option>
-                            <option value="Read">Lidos (Read)</option>
-                            <option value="Paused">Pausados (Paused)</option>
-                            <option value="Want to read">Quero Ler (Want to read)</option>
+                                <option value="ALL">Todos os Status</option>
+                                <option value="Read">Lidos</option>
+                                <option value="Paused">Pausados</option>
+                                <option value="Want to read">Quero Ler</option>
                         </select>
                         <input type="text" id="search-reading" placeholder="Buscar por título ou nota...">
                     </div>

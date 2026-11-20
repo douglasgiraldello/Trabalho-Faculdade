@@ -120,14 +120,21 @@ function renderReadings() {
 
     document.getElementById('table-readings').innerHTML = filtered.map(r => {
         let badgeClass = 'badge-want';
-        if (r.status === 'Read') badgeClass = 'badge-read';
-        if (r.status === 'Paused') badgeClass = 'badge-paused';
+        let statusLabel = 'Quero Ler';
+
+        if (r.status === 'Read') {
+            badgeClass = 'badge-read';
+            statusLabel = 'Lido';
+        } else if (r.status === 'Paused') {
+            badgeClass = 'badge-paused';
+            statusLabel = 'Pausado';
+        }
 
         return `
             <tr>
                 <td><strong>${getBookTitle(r.bookId)}</strong></td>
                 <td>${getBookAuthors(r.bookId)}</td>
-                <td><span class="badge ${badgeClass}">${r.status}</span></td>
+                <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
                 <td>${r.yearRead || '-'}</td>
                 <td>${r.grade !== null ? r.grade : '-'}</td>
                 <td>${r.notes || (r.recommendedBy ? `Indicado por: ${r.recommendedBy}` : '-')}</td>
