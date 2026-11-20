@@ -1,26 +1,201 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reading Tracker</title>
+    <title>Reading Tracker - Delivery 1</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
-        <h1>Reading Tracker</h1>
-        <p>Gerenciador de Leituras - Delivery 1</p>
+        <div>
+            <h1>Reading Tracker</h1>
+            <p>Gerenciador de Leituras, Livros e Autores</p>
+        </div>
+        <nav>
+            <button id="tab-readings" class="active">Leituras & Wishlist</button>
+            <button id="tab-books">Livros</button>
+            <button id="tab-authors">Autores</button>
+            <button id="btn-reset" class="btn-secondary" title="Restaurar dados originais">Resetar Dados</button>
+        </nav>
     </header>
 
     <main>
-        <section id="status-section">
-            <h2>Status dos Dados</h2>
-            <p id="loading-msg">Carregando dados...</p>
-            <ul id="stats-list"></ul>
+        <!-- Resumo Estatístico -->
+        <section class="stats-grid" id="dashboard-stats"></section>
+
+        <!-- SEÇÃO 1: LEITURAS -->
+        <section id="view-readings">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Registrar Nova Leitura / Wishlist</h2>
+                </div>
+                <form id="form-reading">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="reading-book">Livro *</label>
+                            <select id="reading-book" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reading-status">Status *</label>
+                            <select id="reading-status" required>
+                                <option value="Want to read">Quero Ler (Want to read)</option>
+                                <option value="Read">Lido (Read)</option>
+                                <option value="Paused">Pausado (Paused)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reading-year">Ano da Leitura</label>
+                            <input type="number" id="reading-year" min="1900" max="2030" placeholder="Ex: 2026">
+                        </div>
+                        <div class="form-group">
+                            <label for="reading-grade">Nota (0 a 10)</label>
+                            <input type="number" id="reading-grade" min="0" max="10" step="0.5" placeholder="Ex: 8.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="reading-notes">Notas / Recomendação</label>
+                            <input type="text" id="reading-notes" placeholder="Opcional...">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Salvar Registro</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Histórico e Lista de Leitura</h2>
+                    <div class="filters">
+                        <select id="filter-status">
+                            <option value="ALL">Todos os Status</option>
+                            <option value="Read">Lidos (Read)</option>
+                            <option value="Paused">Pausados (Paused)</option>
+                            <option value="Want to read">Quero Ler (Want to read)</option>
+                        </select>
+                        <input type="text" id="search-reading" placeholder="Buscar por título ou nota...">
+                    </div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Livro</th>
+                                <th>Autor(es)</th>
+                                <th>Status</th>
+                                <th>Ano</th>
+                                <th>Nota</th>
+                                <th>Observações</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-readings"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 2: LIVROS -->
+        <section id="view-books" class="hidden">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Cadastrar Novo Livro</h2>
+                </div>
+                <form id="form-book">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="book-title">Título *</label>
+                            <input type="text" id="book-title" required placeholder="Nome do livro">
+                        </div>
+                        <div class="form-group">
+                            <label for="book-author">Autor *</label>
+                            <select id="book-author" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="book-year">Ano de Publicação</label>
+                            <input type="number" id="book-year" placeholder="Ex: 1899">
+                        </div>
+                        <div class="form-group">
+                            <label for="book-form">Formato</label>
+                            <select id="book-form">
+                                <option value="Novel">Romance (Novel)</option>
+                                <option value="Short Story">Conto (Short Story)</option>
+                                <option value="Novella">Novela (Novella)</option>
+                                <option value="Essay">Ensaio (Essay)</option>
+                                <option value="Graphic Novel">Graphic Novel</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Adicionar Livro</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Catálogo de Livros</h2>
+                    <input type="text" id="search-book" placeholder="Filtrar livros...">
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Autor(es)</th>
+                                <th>Publicação</th>
+                                <th>Formato</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-books"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 3: AUTORES -->
+        <section id="view-authors" class="hidden">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Cadastrar Novo Autor</h2>
+                </div>
+                <form id="form-author">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="author-name">Nome Completo *</label>
+                            <input type="text" id="author-name" required placeholder="Ex: Machado de Assis">
+                        </div>
+                        <div class="form-group">
+                            <label for="author-country">País *</label>
+                            <select id="author-country" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="author-birth">Nascimento</label>
+                            <input type="date" id="author-birth">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Adicionar Autor</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Autores Cadastrados</h2>
+                    <input type="text" id="search-author" placeholder="Buscar autor...">
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>País</th>
+                                <th>Nascimento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-authors"></tbody>
+                    </table>
+                </div>
+            </div>
         </section>
     </main>
 
-   <!-- Importando o app.js como módulo principal -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
