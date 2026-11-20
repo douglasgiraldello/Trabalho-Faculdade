@@ -21,16 +21,17 @@
     </header>
 
     <main>
-        <!-- Resumo Estatístico -->
         <section class="stats-grid" id="dashboard-stats"></section>
 
         <!-- SEÇÃO 1: LEITURAS -->
         <section id="view-readings">
             <div class="panel">
                 <div class="panel-header">
-                    <h2>Registrar Nova Leitura / Wishlist</h2>
+                    <h2 id="form-reading-title">Registrar Nova Leitura / Wishlist</h2>
                 </div>
+                <div id="error-reading" class="alert-error hidden"></div>
                 <form id="form-reading">
+                    <input type="hidden" id="reading-edit-id">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="reading-book">Livro *</label>
@@ -57,7 +58,8 @@
                             <input type="text" id="reading-notes" placeholder="Opcional...">
                         </div>
                     </div>
-                    <button type="submit" class="btn">Salvar Registro</button>
+                    <button type="submit" class="btn" id="btn-submit-reading">Salvar Registro</button>
+                    <button type="button" class="btn btn-secondary hidden" id="btn-cancel-reading">Cancelar Edição</button>
                 </form>
             </div>
 
@@ -97,9 +99,11 @@
         <section id="view-books" class="hidden">
             <div class="panel">
                 <div class="panel-header">
-                    <h2>Cadastrar Novo Livro</h2>
+                    <h2 id="form-book-title">Cadastrar Novo Livro</h2>
                 </div>
+                <div id="error-book" class="alert-error hidden"></div>
                 <form id="form-book">
+                    <input type="hidden" id="book-edit-id">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="book-title">Título *</label>
@@ -108,6 +112,10 @@
                         <div class="form-group">
                             <label for="book-author">Autor *</label>
                             <select id="book-author" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="book-theme">Tema Principal</label>
+                            <select id="book-theme"></select>
                         </div>
                         <div class="form-group">
                             <label for="book-year">Ano de Publicação</label>
@@ -124,14 +132,15 @@
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="btn">Adicionar Livro</button>
+                    <button type="submit" class="btn" id="btn-submit-book">Adicionar Livro</button>
+                    <button type="button" class="btn btn-secondary hidden" id="btn-cancel-book">Cancelar Edição</button>
                 </form>
             </div>
 
             <div class="panel">
                 <div class="panel-header">
                     <h2>Catálogo de Livros</h2>
-                    <input type="text" id="search-book" placeholder="Filtrar livros...">
+                    <input type="text" id="search-book" placeholder="Filtrar livros ou autores...">
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
@@ -139,6 +148,7 @@
                             <tr>
                                 <th>Título</th>
                                 <th>Autor(es)</th>
+                                <th>Temas</th>
                                 <th>Publicação</th>
                                 <th>Formato</th>
                                 <th>Ações</th>
@@ -154,9 +164,11 @@
         <section id="view-authors" class="hidden">
             <div class="panel">
                 <div class="panel-header">
-                    <h2>Cadastrar Novo Autor</h2>
+                    <h2 id="form-author-title">Cadastrar Novo Autor</h2>
                 </div>
+                <div id="error-author" class="alert-error hidden"></div>
                 <form id="form-author">
+                    <input type="hidden" id="author-edit-id">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="author-name">Nome Completo *</label>
@@ -171,14 +183,15 @@
                             <input type="date" id="author-birth">
                         </div>
                     </div>
-                    <button type="submit" class="btn">Adicionar Autor</button>
+                    <button type="submit" class="btn" id="btn-submit-author">Adicionar Autor</button>
+                    <button type="button" class="btn btn-secondary hidden" id="btn-cancel-author">Cancelar Edição</button>
                 </form>
             </div>
 
             <div class="panel">
                 <div class="panel-header">
                     <h2>Autores Cadastrados</h2>
-                    <input type="text" id="search-author" placeholder="Buscar autor...">
+                    <input type="text" id="search-author" placeholder="Buscar autor ou país...">
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
@@ -187,6 +200,7 @@
                                 <th>Nome</th>
                                 <th>País</th>
                                 <th>Nascimento</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="table-authors"></tbody>

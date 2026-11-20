@@ -23,6 +23,7 @@ export async function getAllData() {
     return await loadData();
 }
 
+// --- LEITURAS ---
 export async function addReading(reading) {
     const data = await loadData();
     const nextId = data.readings.reduce((max, r) => Math.max(max, r.id), 0) + 1;
@@ -30,13 +31,11 @@ export async function addReading(reading) {
     saveData(data);
 }
 
-export async function updateReadingStatus(id, newStatus, grade = null, yearRead = null) {
+export async function updateReading(id, updatedFields) {
     const data = await loadData();
-    const item = data.readings.find(r => r.id === id);
-    if (item) {
-        item.status = newStatus;
-        if (grade !== null) item.grade = grade;
-        if (yearRead !== null) item.yearRead = yearRead;
+    const index = data.readings.findIndex(r => r.id === id);
+    if (index !== -1) {
+        data.readings[index] = { ...data.readings[index], ...updatedFields };
         saveData(data);
     }
 }
@@ -47,11 +46,21 @@ export async function deleteReading(id) {
     saveData(data);
 }
 
+// --- LIVROS ---
 export async function addBook(book) {
     const data = await loadData();
     const nextId = data.books.reduce((max, b) => Math.max(max, b.id), 0) + 1;
-    data.books.unshift({ id: nextId, themeIds: [], ...book });
+    data.books.unshift({ id: nextId, ...book });
     saveData(data);
+}
+
+export async function updateBook(id, updatedFields) {
+    const data = await loadData();
+    const index = data.books.findIndex(b => b.id === id);
+    if (index !== -1) {
+        data.books[index] = { ...data.books[index], ...updatedFields };
+        saveData(data);
+    }
 }
 
 export async function deleteBook(id) {
@@ -61,10 +70,26 @@ export async function deleteBook(id) {
     saveData(data);
 }
 
+// --- AUTORES ---
 export async function addAuthor(author) {
     const data = await loadData();
     const nextId = data.authors.reduce((max, a) => Math.max(max, a.id), 0) + 1;
     data.authors.unshift({ id: nextId, ...author });
+    saveData(data);
+}
+
+export async function updateAuthor(id, updatedFields) {
+    const data = await loadData();
+    const index = data.authors.findIndex(a => a.id === id);
+    if (index !== -1) {
+        data.authors[index] = { ...data.authors[index], ...updatedFields };
+        saveData(data);
+    }
+}
+
+export async function deleteAuthor(id) {
+    const data = await loadData();
+    data.authors = data.authors.filter(a => a.id !== id);
     saveData(data);
 }
 

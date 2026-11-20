@@ -1,41 +1,71 @@
 import {
     getAllData,
     addReading,
+    updateReading,
     deleteReading,
     addBook,
+    updateBook,
     deleteBook,
     addAuthor,
+    updateAuthor,
+    deleteAuthor,
     resetDatabase
 } from './store.js';
 
+import {
+    validateReading,
+    validateBook,
+    validateAuthor
+} from './validation.js';
+
 let appData = { countries: [], authors: [], themes: [], books: [], readings: [] };
 
-// Utilitários para cruzar os IDs
+// Utilitários relacionais
 function getBookTitle(bookId) {
-    const book = appData.books.find(b => b.id === bookId);
-    return book ? book.title : 'Livro desconhecido';
+    return appData.books.find(b => b.id === bookId)?.title || 'Livro desconhecido';
 }
 
 function getBookAuthors(bookId) {
     const book = appData.books.find(b => b.id === bookId);
-    if (!book || !book.authorIds || book.authorIds.length === 0) return 'Desconhecido';
+    if (!book || !book.authorIds?.length) return 'Desconhecido';
     return book.authorIds
         .map(id => appData.authors.find(a => a.id === id)?.name || 'Desconhecido')
         .join(', ');
 }
 
 function getAuthorNamesByIds(authorIds) {
-    if (!authorIds || authorIds.length === 0) return 'Desconhecido';
+    if (!authorIds?.length) return 'Desconhecido';
     return authorIds
         .map(id => appData.authors.find(a => a.id === id)?.name || 'Desconhecido')
         .join(', ');
+}
+
+function getThemeBadges(themeIds) {
+    if (!themeIds?.length) return '-';
+    return themeIds
+        .map(id => {
+            const theme = appData.themes.find(t => t.id === id);
+            return theme ? `<span class="theme-tag">${theme.name}</span>` : '';
+        })
+        .join('');
 }
 
 function getCountryName(countryId) {
     return appData.countries.find(c => c.id === countryId)?.name || 'Não informado';
 }
 
-// Renderização do Dashboard
+function showErrors(elementId, errors) {
+    const el = document.getElementById(elementId);
+    if (errors.length > 0) {
+        el.innerHTML = errors.join('<br>');
+        el.classList.remove('hidden');
+    } else {
+        el.classList.add('hidden');
+        el.innerHTML = '';
+    }
+}
+
+// Dashboard
 function renderStats() {
     const totalBooks = appData.books.length;
     const readCount = appData.readings.filter(r => r.status === 'Read').length;
@@ -56,25 +86,26 @@ function renderStats() {
     `;
 }
 
-// Preenche os selects dos formulários
+// Selects dos formulários
 function populateSelects() {
-    const bookSelect = document.getElementById('reading-book');
-    bookSelect.innerHTML = appData.books
+    document.getElementById('reading-book').innerHTML = appData.books
         .map(b => `<option value="${b.id}">${b.title}</option>`)
         .join('');
 
-    const authorSelect = document.getElementById('book-author');
-    authorSelect.innerHTML = appData.authors
+    document.getElementById('book-author').innerHTML = appData.authors
         .map(a => `<option value="${a.id}">${a.name}</option>`)
         .join('');
 
-    const countrySelect = document.getElementById('author-country');
-    countrySelect.innerHTML = appData.countries
+    document.getElementById('book-theme').innerHTML =
+        `<option value="">-- Sem tema específico --</option>` +
+        appData.themes.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+
+    document.getElementById('author-country').innerHTML = appData.countries
         .map(c => `<option value="${c.id}">${c.name}</option>`)
         .join('');
 }
 
-// Renderiza tabela de Leituras
+// Renderizações das Tabelas
 function renderReadings() {
     const statusFilter = document.getElementById('filter-status').value;
     const search = document.getElementById('search-reading').value.toLowerCase();
@@ -87,8 +118,7 @@ function renderReadings() {
         return matchesStatus && matchesText;
     });
 
-    const tbody = document.getElementById('table-readings');
-    tbody.innerHTML = filtered.map(r => {
+    document.getElementById('table-readings').innerHTML = filtered.map(r => {
         let badgeClass = 'badge-want';
         if (r.status === 'Read') badgeClass = 'badge-read';
         if (r.status === 'Paused') badgeClass = 'badge-paused';
@@ -101,7 +131,8 @@ function renderReadings() {
                 <td>${r.yearRead || '-'}</td>
                 <td>${r.grade !== null ? r.grade : '-'}</td>
                 <td>${r.notes || (r.recommendedBy ? `Indicado por: ${r.recommendedBy}` : '-')}</td>
-                <td>
+                <td class="actions-cell">
+                    <button class="btn btn-edit" data-edit-reading="${r.id}">Editar</button>
                     <button class="btn btn-danger" data-delete-reading="${r.id}">Excluir</button>
                 </td>
             </tr>
@@ -109,7 +140,6 @@ function renderReadings() {
     }).join('');
 }
 
-// Renderiza tabela de Livros
 function renderBooks() {
     const search = document.getElementById('search-book').value.toLowerCase();
     const filtered = appData.books.filter(b =>
@@ -121,25 +151,33 @@ function renderBooks() {
         <tr>
             <td><strong>${b.title}</strong></td>
             <td>${getAuthorNamesByIds(b.authorIds)}</td>
+            <td>${getThemeBadges(b.themeIds)}</td>
             <td>${b.publicationYear || '-'}</td>
             <td>${b.form || '-'}</td>
-            <td>
+            <td class="actions-cell">
+                <button class="btn btn-edit" data-edit-book="${b.id}">Editar</button>
                 <button class="btn btn-danger" data-delete-book="${b.id}">Excluir</button>
             </td>
         </tr>
     `).join('');
 }
 
-// Renderiza tabela de Autores
 function renderAuthors() {
     const search = document.getElementById('search-author').value.toLowerCase();
-    const filtered = appData.authors.filter(a => a.name.toLowerCase().includes(search));
+    const filtered = appData.authors.filter(a =>
+        a.name.toLowerCase().includes(search) ||
+        getCountryName(a.countryId).toLowerCase().includes(search)
+    );
 
     document.getElementById('table-authors').innerHTML = filtered.map(a => `
         <tr>
             <td><strong>${a.name}</strong></td>
             <td>${getCountryName(a.countryId)}</td>
             <td>${a.birthDate || '-'}</td>
+            <td class="actions-cell">
+                <button class="btn btn-edit" data-edit-author="${a.id}">Editar</button>
+                <button class="btn btn-danger" data-delete-author="${a.id}">Excluir</button>
+            </td>
         </tr>
     `).join('');
 }
@@ -153,7 +191,34 @@ async function refreshUI() {
     renderAuthors();
 }
 
-// Controle de Abas
+// Funções de reset dos modos de edição
+function resetReadingForm() {
+    document.getElementById('form-reading').reset();
+    document.getElementById('reading-edit-id').value = '';
+    document.getElementById('form-reading-title').textContent = 'Registrar Nova Leitura / Wishlist';
+    document.getElementById('btn-submit-reading').textContent = 'Salvar Registro';
+    document.getElementById('btn-cancel-reading').classList.add('hidden');
+    showErrors('error-reading', []);
+}
+
+function resetBookForm() {
+    document.getElementById('form-book').reset();
+    document.getElementById('book-edit-id').value = '';
+    document.getElementById('form-book-title').textContent = 'Cadastrar Novo Livro';
+    document.getElementById('btn-submit-book').textContent = 'Adicionar Livro';
+    document.getElementById('btn-cancel-book').classList.add('hidden');
+    showErrors('error-book', []);
+}
+
+function resetAuthorForm() {
+    document.getElementById('form-author').reset();
+    document.getElementById('author-edit-id').value = '';
+    document.getElementById('form-author-title').textContent = 'Cadastrar Novo Autor';
+    document.getElementById('btn-submit-author').textContent = 'Adicionar Autor';
+    document.getElementById('btn-cancel-author').classList.add('hidden');
+    showErrors('error-author', []);
+}
+
 function setupNavigation() {
     const tabs = [
         { btn: 'tab-readings', view: 'view-readings' },
@@ -180,84 +245,179 @@ function setupNavigation() {
     });
 }
 
-// Eventos de Formulários e Filtros
 function setupEvents() {
+    // Submit Leitura (Criar ou Editar)
     document.getElementById('form-reading').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const bookId = Number(document.getElementById('reading-book').value);
-        const status = document.getElementById('reading-status').value;
+        const editId = document.getElementById('reading-edit-id').value;
         const yearVal = document.getElementById('reading-year').value;
         const gradeVal = document.getElementById('reading-grade').value;
-        const notes = document.getElementById('reading-notes').value.trim();
 
-        await addReading({
-            bookId,
-            status,
+        const payload = {
+            bookId: Number(document.getElementById('reading-book').value),
+            status: document.getElementById('reading-status').value,
             yearRead: yearVal ? Number(yearVal) : null,
             grade: gradeVal !== '' ? Number(gradeVal) : null,
-            recommendedBy: null,
-            priority: null,
-            notes: notes || null
-        });
+            notes: document.getElementById('reading-notes').value.trim() || null
+        };
 
-        e.target.reset();
+        const errors = validateReading(payload);
+        if (errors.length > 0) {
+            showErrors('error-reading', errors);
+            return;
+        }
+
+        if (editId) {
+            await updateReading(Number(editId), payload);
+        } else {
+            await addReading({ ...payload, recommendedBy: null, priority: null });
+        }
+
+        resetReadingForm();
         await refreshUI();
     });
 
+    // Submit Livro (Criar ou Editar)
     document.getElementById('form-book').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const title = document.getElementById('book-title').value.trim();
-        const authorId = Number(document.getElementById('book-author').value);
+        const editId = document.getElementById('book-edit-id').value;
         const yearVal = document.getElementById('book-year').value;
-        const form = document.getElementById('book-form').value;
+        const themeVal = document.getElementById('book-theme').value;
 
-        await addBook({
-            title,
-            authorIds: [authorId],
+        const payload = {
+            title: document.getElementById('book-title').value.trim(),
+            authorIds: [Number(document.getElementById('book-author').value)],
+            themeIds: themeVal ? [Number(themeVal)] : [],
             publicationYear: yearVal ? Number(yearVal) : null,
-            form,
-            mode: 'Prose',
-            content: 'Fiction'
-        });
+            form: document.getElementById('book-form').value
+        };
 
-        e.target.reset();
+        const errors = validateBook(payload);
+        if (errors.length > 0) {
+            showErrors('error-book', errors);
+            return;
+        }
+
+        if (editId) {
+            await updateBook(Number(editId), payload);
+        } else {
+            await addBook({ ...payload, mode: 'Prose', content: 'Fiction' });
+        }
+
+        resetBookForm();
         await refreshUI();
     });
 
+    // Submit Autor (Criar ou Editar)
     document.getElementById('form-author').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = document.getElementById('author-name').value.trim();
-        const countryId = Number(document.getElementById('author-country').value);
-        const birthDate = document.getElementById('author-birth').value || null;
+        const editId = document.getElementById('author-edit-id').value;
+        const payload = {
+            name: document.getElementById('author-name').value.trim(),
+            countryId: Number(document.getElementById('author-country').value),
+            birthDate: document.getElementById('author-birth').value || null
+        };
 
-        await addAuthor({ name, countryId, birthDate, deathDate: null });
-        e.target.reset();
+        const errors = validateAuthor(payload);
+        if (errors.length > 0) {
+            showErrors('error-author', errors);
+            return;
+        }
+
+        if (editId) {
+            await updateAuthor(Number(editId), payload);
+        } else {
+            await addAuthor({ ...payload, deathDate: null });
+        }
+
+        resetAuthorForm();
         await refreshUI();
     });
 
-    // Filtros em tempo real
+    // Botões Cancelar Edição
+    document.getElementById('btn-cancel-reading').addEventListener('click', resetReadingForm);
+    document.getElementById('btn-cancel-book').addEventListener('click', resetBookForm);
+    document.getElementById('btn-cancel-author').addEventListener('click', resetAuthorForm);
+
+    // Filtros
     document.getElementById('filter-status').addEventListener('change', renderReadings);
     document.getElementById('search-reading').addEventListener('input', renderReadings);
     document.getElementById('search-book').addEventListener('input', renderBooks);
     document.getElementById('search-author').addEventListener('input', renderAuthors);
 
-    // Delegação de eventos para botões de excluir
+    // Cliques em Editar e Excluir nas tabelas
     document.body.addEventListener('click', async (e) => {
-        const readingId = e.target.getAttribute('data-delete-reading');
-        if (readingId) {
-            await deleteReading(Number(readingId));
+        // Excluir
+        const delReading = e.target.getAttribute('data-delete-reading');
+        if (delReading) {
+            await deleteReading(Number(delReading));
+            await refreshUI();
+        }
+        const delBook = e.target.getAttribute('data-delete-book');
+        if (delBook) {
+            await deleteBook(Number(delBook));
+            await refreshUI();
+        }
+        const delAuthor = e.target.getAttribute('data-delete-author');
+        if (delAuthor) {
+            await deleteAuthor(Number(delAuthor));
             await refreshUI();
         }
 
-        const bookId = e.target.getAttribute('data-delete-book');
-        if (bookId) {
-            await deleteBook(Number(bookId));
-            await refreshUI();
+        // Editar Leitura
+        const editReadingId = e.target.getAttribute('data-edit-reading');
+        if (editReadingId) {
+            const item = appData.readings.find(r => r.id === Number(editReadingId));
+            if (item) {
+                document.getElementById('reading-edit-id').value = item.id;
+                document.getElementById('reading-book').value = item.bookId;
+                document.getElementById('reading-status').value = item.status;
+                document.getElementById('reading-year').value = item.yearRead || '';
+                document.getElementById('reading-grade').value = item.grade ?? '';
+                document.getElementById('reading-notes').value = item.notes || '';
+                document.getElementById('form-reading-title').textContent = 'Editando Registro de Leitura';
+                document.getElementById('btn-submit-reading').textContent = 'Atualizar Registro';
+                document.getElementById('btn-cancel-reading').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Editar Livro
+        const editBookId = e.target.getAttribute('data-edit-book');
+        if (editBookId) {
+            const book = appData.books.find(b => b.id === Number(editBookId));
+            if (book) {
+                document.getElementById('book-edit-id').value = book.id;
+                document.getElementById('book-title').value = book.title;
+                document.getElementById('book-author').value = book.authorIds?.[0] || '';
+                document.getElementById('book-theme').value = book.themeIds?.[0] || '';
+                document.getElementById('book-year').value = book.publicationYear || '';
+                document.getElementById('book-form').value = book.form || 'Novel';
+                document.getElementById('form-book-title').textContent = 'Editando Livro';
+                document.getElementById('btn-submit-book').textContent = 'Atualizar Livro';
+                document.getElementById('btn-cancel-book').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Editar Autor
+        const editAuthorId = e.target.getAttribute('data-edit-author');
+        if (editAuthorId) {
+            const author = appData.authors.find(a => a.id === Number(editAuthorId));
+            if (author) {
+                document.getElementById('author-edit-id').value = author.id;
+                document.getElementById('author-name').value = author.name;
+                document.getElementById('author-country').value = author.countryId;
+                document.getElementById('author-birth').value = author.birthDate || '';
+                document.getElementById('form-author-title').textContent = 'Editando Autor';
+                document.getElementById('btn-submit-author').textContent = 'Atualizar Autor';
+                document.getElementById('btn-cancel-author').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
     });
 }
 
-// Inicialização
 setupNavigation();
 setupEvents();
 refreshUI();

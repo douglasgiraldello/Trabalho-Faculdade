@@ -170,3 +170,35 @@ th { background-color: #f1f5f9; font-weight: 600; }
 .badge-want { background: #e0f2fe; color: var(--primary); }
 
 .hidden { display: none; }
+.btn-edit {
+    background-color: #0284c7;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    margin-right: 0.35rem;
+}
+
+.btn-edit:hover { background-color: #0369a1; }
+
+.alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.theme-tag {
+    display: inline-block;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin: 0.1rem;
+}
+
+.actions-cell {
+    white-space: nowrap;
+}
